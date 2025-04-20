@@ -7,6 +7,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+
 const pool = new Pool({
   user: process.env.DB_USER,
   host: "localhost",
@@ -28,6 +29,8 @@ app.post("/register", async (req, res) => {
     const client = await pool.connect();
   
     const {
+      customerId,
+      address,
       firstName,
       lastName,
       phone,
@@ -38,11 +41,13 @@ app.post("/register", async (req, res) => {
       dogAge,
       dogSize
     } = req.body;
+
+    console.log("Received data:", req.body);
   
     try {
       // Save customer first
       const customerResult = await client.query(
-        `INSERT INTO customers (first_name, last_name, phone, email, password_hash)
+        `INSERT INTO customers (first_name, last_name, phone, email, password)
          VALUES ($1, $2, $3, $4, $5) RETURNING id`,
         [firstName, lastName, phone, email, password]
       );
@@ -59,7 +64,7 @@ app.post("/register", async (req, res) => {
       res.json({ success: true });
     } catch (err) {
       
-      cconsole.error("❌ SERVER ERROR:", err.message, err.stack);
+      console.error("❌ SERVER ERROR:", err.message, err.stack);
 
       res.status(500).json({ error: "Something went wrong" });
     } finally {
